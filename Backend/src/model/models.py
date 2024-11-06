@@ -1,5 +1,10 @@
-from pydantic import BaseModel, Field
-from datetime import datetime
-from typing import Optional, List
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
+
+
+
+
 
 
