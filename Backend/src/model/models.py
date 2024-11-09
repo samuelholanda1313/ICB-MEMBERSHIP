@@ -6,8 +6,6 @@ from src.database.database import Base
 class Administrador(Base):
     __tablename__ = "administradores"
     id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(255), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
     senha = Column(String(255), nullable=False)
     tipo = Column(String(255), nullable=False)
     unidade_id = Column(Integer, ForeignKey("unidades.id"), nullable=False)
