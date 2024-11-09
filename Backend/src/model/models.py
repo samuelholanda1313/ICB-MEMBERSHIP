@@ -33,3 +33,15 @@ class Membro(Base):
     data_batismo = Column(Date)
     unidade = relationship("Unidade", back_populates="Membro")
     administradores = relationship("Administrador", back_populates="Membro")
+
+class Unidade(Base):
+    __tablename__ = "unidades"
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(255), nullable=False)
+    cidade = Column(String(255), nullable=False)
+    cep = Column(String(255), nullable=False)
+    endereco = Column(String(255), nullable=False)
+    bairro = Column(String(255), nullable=False)
+    estado = Column(String(255), nullable=False)
+    administradores = relationship("Administrador", back_populates="Unidade")
+    membros = relationship("Membro", back_populates="Unidade")
