@@ -28,7 +28,6 @@ class Membro(Base):
     estado_civil = Column(String(255), nullable=False)
     telefone = Column(String(255), nullable=False)
     profissao = Column(String(255), nullable=False)
-    data_conversao = Column(Date)
     batismo = Column(String(255), nullable=False)
     data_batismo = Column(Date)
     unidade = relationship("Unidade", back_populates="Membro")
