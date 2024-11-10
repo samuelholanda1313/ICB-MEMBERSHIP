@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from src.schemas.unidade import Unidade
+from src.schemas.unidade import UnidadeBase
 from src.schemas.membro import Membro
 
 # Define um schema base para a entidade Administrador
@@ -15,7 +15,7 @@ class AdministradorCreate(AdministradorBase):
 # Define o schema para caso de ler informações do administrador
 class Administrador(AdministradorBase):
     id: int
-    unidade: Unidade
+    unidade: UnidadeBase
     membro: Membro
 
     class Config:
