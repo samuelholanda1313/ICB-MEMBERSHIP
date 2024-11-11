@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Date, CheckConstrain
 from sqlalchemy.orm import relationship
 from src.database.database import Base
 
-# Criação do Model para a entidade de Administrador
+# Criacao do Model para a entidade de Administrador
 class Administrador(Base):
     __tablename__ = "administradores"
     id = Column(Integer, primary_key=True, index=True)
@@ -13,7 +13,7 @@ class Administrador(Base):
     unidade = relationship("Unidade", back_populates="Administrador")
     membro = relationship("Membro", back_populates="Administrador")
 
-# Criação do Model para a entidade de Membro
+# Criacao do Model para a entidade de Membro
 class Membro(Base):
     __tablename__ = "membros"
     id = Column(Integer, primary_key=True, index=True)

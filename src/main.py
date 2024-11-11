@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from src.database.database import Base
-from src.database.database import engine
-from src.routes.administradores_routes import router as administradores_router
+from database.database import Base
+from database.database import engine
+from routes.administradores_routes import router as administradores_router
 #from src.routes.membros_routes import router as membros_router
 #from src.routes.unidades_routes import router as unidades_router
+import logging
 
 app = FastAPI()
+
+logging.basicConfig(level=logging.INFO)
 
 Base.metadata.create_all(bind=engine)
 
