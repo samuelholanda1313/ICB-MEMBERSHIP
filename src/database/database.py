@@ -1,22 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from dotenv import load_dotenv
 import os
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# URL do Banco de Dados
-URL_DATABASE = f'postgresql://{os.environ.get("DB_USER")}:{os.environ.get("DB_PASS")}@localhost:5432/ICB'
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
-engine = create_engine(URL_DATABASE)
-session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-
-def get_db():
-    db = session_local()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_supabase_client() -> Client:
+    return supabase
