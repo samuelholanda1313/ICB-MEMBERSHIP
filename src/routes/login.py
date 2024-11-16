@@ -3,12 +3,13 @@ from fastapi import APIRouter, HTTPException, Request
 from src.database.database import get_supabase_client
 from supabase import Client
 import bcrypt
-import jwt
+#import jwt
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
 from src.config.limiter_config import limiter
+from jose import JWTError, jwt
 
 load_dotenv()
 
