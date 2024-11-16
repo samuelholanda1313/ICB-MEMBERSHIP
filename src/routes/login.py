@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
 from src.config.limiter_config import limiter
-from jose import JWTError, jwt
+from jose import jwt
+
 
 load_dotenv()
 
