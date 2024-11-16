@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from src.database.database import get_supabase_client
 from supabase import Client
 import bcrypt
-import jwt
+from jwt import PyJWT
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Optional
@@ -25,7 +25,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = PyJWT.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 def check_senha(senha_fornecida: str, hash_armazenado: str) -> bool:
