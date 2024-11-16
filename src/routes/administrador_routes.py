@@ -182,9 +182,9 @@ async def delete_administrador(request: Request, id: int, payload: dict = Depend
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
 
     if tipo_administrador == "ADMGeral":
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).execute()
+        response_administrador = supabase.table("administradores").select("id").eq("id", id).execute()
     else:
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
+        response_administrador = supabase.table("administradores").select("id, acesso_unidade_id").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
 
     if not response_administrador.data:
         raise HTTPException(status_code=404, detail="Administrador não encontrado")
@@ -207,9 +207,9 @@ async def update_administrador(request: Request, id: int, dados: UpdateAdministr
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
 
     if tipo_administrador == "ADMGeral":
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).execute()
+        response_administrador = supabase.table("administradores").select("id").eq("id", id).execute()
     else:
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
+        response_administrador = supabase.table("administradores").select("id, acesso_unidade_id").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
 
 
     if not response_administrador.data:

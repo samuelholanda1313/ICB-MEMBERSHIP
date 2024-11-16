@@ -133,9 +133,9 @@ async def delete_membro(request: Request, id: int, payload: dict = Depends(check
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
     if tipo_administrador == "ADMUnidade":
-        response_membro = supabase.table("membros").select("*").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
+        response_membro = supabase.table("membros").select("id, unidade_id").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
     else:
-        response_membro = supabase.table("membros").select("*").eq("id", id).execute()
+        response_membro = supabase.table("membros").select("id").eq("id", id).execute()
 
     if not response_membro.data:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
@@ -157,9 +157,9 @@ async def update_membro(request: Request, id: int, dados: UpdateMembro = Body(..
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
     if tipo_administrador == "ADMUnidade":
-        response_membro = supabase.table("membros").select("*").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
+        response_membro = supabase.table("membros").select("id, unidade_id").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
     else:
-        response_membro = supabase.table("membros").select("*").eq("id", id).execute()
+        response_membro = supabase.table("membros").select("id").eq("id", id).execute()
 
     if not response_membro.data:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
