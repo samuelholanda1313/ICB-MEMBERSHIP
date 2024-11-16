@@ -4,9 +4,14 @@ from src.routes.administrador_routes import router as administrador_router
 from src.routes.membro_routes import router as membro_router
 from src.routes.unidade_routes import router as unidade_router
 from src.routes.login import router as login_router
-
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
 
 app = FastAPI()
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(429, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,

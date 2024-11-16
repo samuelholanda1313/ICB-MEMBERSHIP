@@ -6,11 +6,13 @@ from supabase import Client
 from datetime import datetime
 import bcrypt
 from src.routes.auth import check_token
+from src.main import limiter
 
 router = APIRouter()
 
 # Método GET para buscar administrador pelo ID
 @router.get("/administrador/{id}")
+@limiter.limit("100/minute")
 async def get_administrador_id(id: int, payload: dict = Depends(check_token)):
 
     tipo_administrador = payload.get("tipo")
@@ -52,6 +54,7 @@ async def get_administrador_id(id: int, payload: dict = Depends(check_token)):
 
 # Método GET para me retornar administradores por um intervalo de ID
 @router.get("/administradores/intervalo")
+@limiter.limit("100/minute")
 async def get_administradores_intervalo(inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
@@ -106,6 +109,7 @@ async def get_administradores_intervalo(inicio: int = Query(None, description="I
 
 #Método GET para buscar administrador por filtros e intervalos
 @router.get("/administradores/filtro")
+@limiter.limit("100/minute")
 async def get_administradores_filtro(tipo: str, filtro: str = Query(None, description="ID do final do intervalo"), inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
@@ -170,6 +174,7 @@ async def get_administradores_filtro(tipo: str, filtro: str = Query(None, descri
 
 # Método DELETE para deletar um administrador de acordo com um ID
 @router.delete("/administrador/{id}")
+@limiter.limit("100/minute")
 async def delete_administrador(id: int, payload: dict = Depends(check_token)):
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -193,6 +198,7 @@ async def delete_administrador(id: int, payload: dict = Depends(check_token)):
 
 # Método PUT para atualizar um administrador
 @router.put("/administrador/{id}")
+@limiter.limit("100/minute")
 async def update_administrador(id: int, dados: UpdateAdministrador = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
@@ -221,6 +227,7 @@ async def update_administrador(id: int, dados: UpdateAdministrador = Body(...), 
 
 # Método POST para criar um administrador
 @router.post("/administrador")
+@limiter.limit("100/minute")
 async def create_administrador(dados: CreateAdministrador = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()

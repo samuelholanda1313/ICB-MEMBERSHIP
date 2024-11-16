@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
+from src.main import limiter
 
 load_dotenv()
 
@@ -35,6 +36,7 @@ class LoginRequest(BaseModel):
     senha: str
 
 @router.post("/login")
+@limiter.limit("50/minute")
 async def login(login_request: LoginRequest):
     email = login_request.email
     senha = login_request.senha
