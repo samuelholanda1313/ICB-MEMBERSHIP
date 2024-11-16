@@ -192,3 +192,22 @@ async def create_unidade(request: Request, dados: CreateMembro = Body(...), payl
         raise HTTPException(status_code=500, detail="Erro ao criar o membro")
 
     return {"detail": create_response.data[0]}
+
+@router.post("/membro_formulario")
+@limiter.limit("5/minute")
+async def create_unidade(request: Request, dados: CreateMembro = Body(...)):
+
+    supabase: Client = get_supabase_client()
+    dados = dados.dict()
+    dados['created_at'] = datetime.now().isoformat()
+    dados['modified_at'] = datetime.now().isoformat()
+    response_membro = supabase.table("membros").select("email").eq("email", dados["email"]).execute()
+    if response_membro.data:
+        raise HTTPException(status_code=409, detail="Já existe um membro com este email")
+
+    create_response = supabase.table("membros").insert(dados).execute()
+
+    if not create_response.data:
+        raise HTTPException(status_code=500, detail="Erro ao criar o membro")
+
+    return {"detail": create_response.data[0]}
