@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from src.database.database import get_supabase_client
 from supabase import Client
 import bcrypt
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
-from src.main import limiter
+from src.config.limiter_config import limiter
 
 load_dotenv()
 
@@ -36,8 +36,8 @@ class LoginRequest(BaseModel):
     senha: str
 
 @router.post("/login")
-@limiter.limit("50/minute")
-async def login(login_request: LoginRequest):
+@limiter.limit("30/minute")
+async def login(login_request: LoginRequest, request: Request):
     email = login_request.email
     senha = login_request.senha
 

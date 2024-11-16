@@ -1,18 +1,18 @@
-from fastapi import APIRouter, HTTPException, Query, Body, Depends
+from fastapi import APIRouter, HTTPException, Query, Body, Depends, Request
 from src.database.database import get_supabase_client
 from src.models.membro_model import CreateMembro, UpdateMembro
 from supabase import Client
 from datetime import datetime
 from src.routes.auth import check_token
 import json
-from src.main import limiter
+from src.config.limiter_config import limiter
 
 router = APIRouter()
 
 # Método GET para buscar um membro pelo ID
 @router.get("/membro/{id}")
 @limiter.limit("100/minute")
-async def get_membro_id(id: int, payload: dict = Depends(check_token)):
+async def get_membro_id(request: Request, id: int, payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -36,7 +36,7 @@ async def get_membro_id(id: int, payload: dict = Depends(check_token)):
 # Método GET que retorna membros por um intervalo de ID
 @router.get("/membros/intervalo")
 @limiter.limit("100/minute")
-async def get_unidades_intervalo(inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
+async def get_unidades_intervalo(request: Request, inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -75,7 +75,7 @@ async def get_unidades_intervalo(inicio: int = Query(None, description="ID do in
 #Método GET para buscar membros por filtros e intervalos
 @router.get("/membros/filtro")
 @limiter.limit("100/minute")
-async def get_membros_filtro(nome: str = Query(None), unidade: str = Query(None), inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
+async def get_membros_filtro(request: Request, nome: str = Query(None), unidade: str = Query(None), inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -127,7 +127,7 @@ async def get_membros_filtro(nome: str = Query(None), unidade: str = Query(None)
 # Método DELETE para deletar um membro de acordo com um ID
 @router.delete("/membro/{id}")
 @limiter.limit("100/minute")
-async def delete_membro(id: int, payload: dict = Depends(check_token)):
+async def delete_membro(request: Request, id: int, payload: dict = Depends(check_token)):
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
@@ -150,7 +150,7 @@ async def delete_membro(id: int, payload: dict = Depends(check_token)):
 # Método PUT para atualizar um membro
 @router.put("/membro/{id}")
 @limiter.limit("100/minute")
-async def update_membro(id: int, dados: UpdateMembro = Body(...), payload: dict = Depends(check_token)):
+async def update_membro(request: Request, id: int, dados: UpdateMembro = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -176,7 +176,7 @@ async def update_membro(id: int, dados: UpdateMembro = Body(...), payload: dict 
 # Método POST para criar um membro
 @router.post("/membro")
 @limiter.limit("100/minute")
-async def create_unidade(dados: CreateMembro = Body(...), payload: dict = Depends(check_token)):
+async def create_unidade(request: Request, dados: CreateMembro = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     dados = dados.dict()

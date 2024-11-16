@@ -1,17 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 from src.routes.administrador_routes import router as administrador_router
 from src.routes.membro_routes import router as membro_router
 from src.routes.unidade_routes import router as unidade_router
 from src.routes.login import router as login_router
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from src.config.limiter_config import limiter
 
 app = FastAPI()
-
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
-app.add_exception_handler(429, _rate_limit_exceeded_handler)
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request, exc):
+    return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
 
 app.add_middleware(
     CORSMiddleware,

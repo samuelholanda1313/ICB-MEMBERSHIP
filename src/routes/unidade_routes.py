@@ -1,18 +1,18 @@
-from fastapi import APIRouter, HTTPException, Query, Body, Depends
+from fastapi import APIRouter, HTTPException, Query, Body, Depends, Request
 from src.database.database import get_supabase_client
 from src.models.unidade_model import CreateUnidade, UpdateUnidade
 from supabase import Client
 from datetime import datetime
 from src.routes.auth import check_token
 import json
-from src.main import limiter
+from src.config.limiter_config import limiter
 
 router = APIRouter()
 
 # Método GET para buscar unidade pelo ID
 @router.get("/unidade/{id}")
 @limiter.limit("100/minute")
-async def get_unidade_id(id: int, payload: dict = Depends(check_token)):
+async def get_unidade_id(request: Request, id: int, payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -32,7 +32,7 @@ async def get_unidade_id(id: int, payload: dict = Depends(check_token)):
 # Método GET para buscar unidade pelo ID e listar os membros e administradores
 @router.get("/unidade-completa/{id}")
 @limiter.limit("100/minute")
-async def get_unidade_completa_id(id: int, payload: dict = Depends(check_token)):
+async def get_unidade_completa_id(request: Request, id: int, payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -73,7 +73,7 @@ async def get_unidade_completa_id(id: int, payload: dict = Depends(check_token))
 # Método GET que retorna unidades por um intervalo de ID
 @router.get("/unidades/intervalo")
 @limiter.limit("100/minute")
-async def get_unidades_intervalo(inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
+async def get_unidades_intervalo(request: Request, inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -100,7 +100,7 @@ async def get_unidades_intervalo(inicio: int = Query(None, description="ID do in
 #Método GET para buscar unidades por filtros e intervalos
 @router.get("/unidades/filtro")
 @limiter.limit("100/minute")
-async def get_unidades_filtro(nome: str = Query(None), cidade: str = Query(None), estado: str = Query(None), inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
+async def get_unidades_filtro(request: Request, nome: str = Query(None), cidade: str = Query(None), estado: str = Query(None), inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -136,7 +136,7 @@ async def get_unidades_filtro(nome: str = Query(None), cidade: str = Query(None)
 # Método DELETE para deletar uma unidade de acordo com um ID
 @router.delete("/unidade/{id}")
 @limiter.limit("100/minute")
-async def delete_unidade(id: int, payload: dict = Depends(check_token)):
+async def delete_unidade(request: Request, id: int, payload: dict = Depends(check_token)):
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
@@ -159,7 +159,7 @@ async def delete_unidade(id: int, payload: dict = Depends(check_token)):
 # Método PUT para atualizar uma unidade
 @router.put("/unidade/{id}")
 @limiter.limit("100/minute")
-async def update_unidade(id: int, dados: UpdateUnidade = Body(...), payload: dict = Depends(check_token)):
+async def update_unidade(request: Request, id: int, dados: UpdateUnidade = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -185,7 +185,7 @@ async def update_unidade(id: int, dados: UpdateUnidade = Body(...), payload: dic
 # Método POST para criar uma unidade
 @router.post("/unidade")
 @limiter.limit("100/minute")
-async def create_unidade(dados: CreateUnidade = Body(...), payload: dict = Depends(check_token)):
+async def create_unidade(request: Request, dados: CreateUnidade = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
