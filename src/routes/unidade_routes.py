@@ -97,6 +97,21 @@ async def get_unidades_intervalo(request: Request, inicio: int = Query(None, des
 
     return {"data": response_unidade.data}
 
+# Método GET que retorna uma lista com o nome das unidades
+@router.get("/unidades")
+@limiter.limit("100/minute")
+async def get_unidades(request: Request, payload: dict = Depends(check_token)):
+
+    supabase: Client = get_supabase_client()
+    query = supabase.table("unidades").select("nome")
+
+    response_unidade = query.execute()
+
+    if not response_unidade.data:
+        raise HTTPException(status_code=404, detail="Erro ao tentar buscar a unidade")
+
+    return {"data": response_unidade.data}
+
 #Método GET para buscar unidades por filtros e intervalos
 @router.get("/unidades/filtro")
 @limiter.limit("100/minute")
