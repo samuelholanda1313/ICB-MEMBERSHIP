@@ -100,7 +100,7 @@ async def get_unidades_intervalo(request: Request, inicio: int = Query(None, des
 # Método GET que retorna uma lista com o nome das unidades
 @router.get("/unidades")
 @limiter.limit("100/minute")
-async def get_unidades(request: Request, payload: dict = Depends(check_token)):
+async def get_unidades(request: Request):
 
     supabase: Client = get_supabase_client()
     query = supabase.table("unidades").select("nome")
