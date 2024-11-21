@@ -36,7 +36,7 @@ async def get_membro_id(request: Request, id: int, payload: dict = Depends(check
 # Método GET que retorna membros por um intervalo de ID
 @router.get("/membros/intervalo")
 @limiter.limit("100/minute")
-async def get_unidades_intervalo(request: Request, inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
+async def get_membros_intervalo(request: Request, inicio: int = Query(None, description="ID do início do intervalo"), fim: int = Query(None, description="ID do final do intervalo"), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     tipo_administrador = payload.get("tipo")
@@ -49,6 +49,39 @@ async def get_unidades_intervalo(request: Request, inicio: int = Query(None, des
 
     if fim is not None:
         query = query.lte("id", fim)
+
+    if tipo_administrador == "ADMUnidade":
+        query = query.in_("unidade_id", acesso_unidades_id)
+
+    response_membro = query.execute()
+
+    dados_membros = []
+
+    for dados_membro in response_membro.data:
+        unidade_id = dados_membro['unidade_id']
+        if tipo_administrador == "ADMUnidade":
+            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
+        else:
+            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).execute()
+        dados_membro['unidade'] = response_unidade.data[0]
+        dados_membro.pop('unidade_id')
+        dados_membros.append(dados_membro)
+
+    if not response_membro.data:
+        raise HTTPException(status_code=404, detail="Erro ao tentar buscar o membro")
+
+    return {"data": dados_membros}
+
+# Método GET que retorna membros por um intervalo de ID
+@router.get("/membros")
+@limiter.limit("100/minute")
+async def get_membros(request: Request, payload: dict = Depends(check_token)):
+
+    supabase: Client = get_supabase_client()
+    tipo_administrador = payload.get("tipo")
+    acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
+    acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
+    query = supabase.table("membros").select("*")
 
     if tipo_administrador == "ADMUnidade":
         query = query.in_("unidade_id", acesso_unidades_id)
@@ -176,7 +209,7 @@ async def update_membro(request: Request, id: int, dados: UpdateMembro = Body(..
 # Método POST para criar um membro
 @router.post("/membro")
 @limiter.limit("100/minute")
-async def create_unidade(request: Request, dados: CreateMembro = Body(...), payload: dict = Depends(check_token)):
+async def create_membro(request: Request, dados: CreateMembro = Body(...), payload: dict = Depends(check_token)):
 
     supabase: Client = get_supabase_client()
     dados = dados.dict()
@@ -195,7 +228,7 @@ async def create_unidade(request: Request, dados: CreateMembro = Body(...), payl
 
 @router.post("/membro_formulario")
 @limiter.limit("5/minute")
-async def create_unidade(request: Request, dados: CreateMembro = Body(...)):
+async def create_membro_form(request: Request, dados: CreateMembro = Body(...)):
 
     supabase: Client = get_supabase_client()
     dados = dados.dict()
