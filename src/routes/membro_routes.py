@@ -102,7 +102,7 @@ async def get_membros_filtro(request: Request, nome: str = Query(None), unidade:
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("id", "nome", "unidade")
+    query = supabase.table("membros").select("id", "nome", "unidade_id")
 
     if inicio is not None:
         query = query.gte("id", inicio)
