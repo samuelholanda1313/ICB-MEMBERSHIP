@@ -72,7 +72,7 @@ async def get_membros_intervalo(request: Request, inicio: int = Query(None, desc
 
     return {"data": dados_membros}
 
-# Método GET que retorna membros por um intervalo de ID
+# Método GET que retorna todos os membros
 @router.get("/membros")
 @limiter.limit("100/minute")
 async def get_membros(request: Request, payload: dict = Depends(check_token)):
@@ -81,29 +81,17 @@ async def get_membros(request: Request, payload: dict = Depends(check_token)):
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("*")
+    query = supabase.table("membros").select("nome")
 
     if tipo_administrador == "ADMUnidade":
         query = query.in_("unidade_id", acesso_unidades_id)
 
     response_membro = query.execute()
 
-    dados_membros = []
-
-    for dados_membro in response_membro.data:
-        unidade_id = dados_membro['unidade_id']
-        if tipo_administrador == "ADMUnidade":
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
-        else:
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).execute()
-        dados_membro['unidade'] = response_unidade.data[0]
-        dados_membro.pop('unidade_id')
-        dados_membros.append(dados_membro)
-
     if not response_membro.data:
         raise HTTPException(status_code=404, detail="Erro ao tentar buscar o membro")
 
-    return {"data": dados_membros}
+    return {"data": response_membro}
 
 #Método GET para buscar membros por filtros e intervalos
 @router.get("/membros/filtro")
