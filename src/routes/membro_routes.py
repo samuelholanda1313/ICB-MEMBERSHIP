@@ -102,7 +102,7 @@ async def get_membros_filtro(request: Request, nome: str = Query(None), unidade:
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("*")
+    query = supabase.table("membros").select("id", "nome", "unidade")
 
     if inicio is not None:
         query = query.gte("id", inicio)
@@ -127,9 +127,9 @@ async def get_membros_filtro(request: Request, nome: str = Query(None), unidade:
         unidade_id = dados_membro['unidade_id']
 
         if tipo_administrador == "ADMUnidade":
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
+            response_unidade = supabase.table("unidades").select("nome").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
         else:
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).execute()
+            response_unidade = supabase.table("unidades").select("nome").eq("id", unidade_id).execute()
 
         if response_unidade.data:
             unidade_nome = response_unidade.data[0]['nome']
