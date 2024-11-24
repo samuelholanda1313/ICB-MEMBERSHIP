@@ -17,15 +17,19 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
 
     tipo_administrador = payload.get("tipo")
     supabase: Client = get_supabase_client()
-    response_administrador = supabase.table("administradores").select("*").eq("id", id).execute()
+    response_administrador = supabase.table("administradores").select("id", "membro_id", "unidade_id", "acesso_unidade_id").eq("id", id).execute()
+
+    if response_administrador.data:
+        raise HTTPException(status_code=404, detail="Erro ao tentar recuperar o perfil do administrador")
+
     dados_administrador = response_administrador.data[0]
 
     if response_administrador.data:
 
         if tipo_administrador == "ADMGeral":
-            response_membro = supabase.table("membros").select("*").eq("id", dados_administrador['membro_id']).execute()
+            response_membro = supabase.table("membros").select("id", "nome", "unidade_id", "email", "sexo", "posicao", "telefone").eq("id", dados_administrador['membro_id']).execute()
         elif tipo_administrador == "ADMUnidade":
-            response_membro = supabase.table("membros").select("*").eq("id", dados_administrador['membro_id']).in_("unidade_id", dados_administrador['acesso_unidade_id']).execute()
+            response_membro = supabase.table("membros").select("id", "nome", "unidade_id", "acesso_unidade_id", "sexo", "posicao", "telefone").eq("id", dados_administrador['membro_id']).in_("unidade_id", dados_administrador['acesso_unidade_id']).execute()
         elif tipo_administrador is None:
             raise HTTPException(status_code=404, detail="Tipo de administrador incorreto, buscar suporte para ajustar no banco de dados")
 
@@ -36,7 +40,7 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
         elif not response_membro.data:
             raise HTTPException(status_code=404, detail="Erro ao tentar recuperar o perfil de membro do administrador")
 
-        response_unidade = supabase.table("unidades").select("*").eq("id", dados_administrador['unidade_id']).execute()
+        response_unidade = supabase.table("unidades").select("id", "nome").eq("id", dados_administrador['unidade_id']).execute()
 
         if response_unidade.data:
             dados_unidade = response_unidade.data[0]
@@ -61,13 +65,7 @@ async def get_administradores_intervalo(request: Request, inicio: int = Query(No
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("administradores").select("*")
-
-    if inicio is not None:
-        query = query.gte("id", inicio)
-
-    if fim is not None:
-        query = query.lte("id", fim)
+    query = supabase.table("administradores").select("id", "unidade_id", "membro_id", "acesso_unidade_id").order("id").range(inicio, fim)
 
     if tipo_administrador == "ADMUnidade":
         query = query.filter("acesso_unidade_id", "ov", acesso_unidades_id)
@@ -82,7 +80,7 @@ async def get_administradores_intervalo(request: Request, inicio: int = Query(No
     for dados_administrador in response_administrador.data:
         membro_id = dados_administrador['membro_id']
         unidade_id = dados_administrador['unidade_id']
-        response_membro = supabase.table("membros").select("*").eq("id", membro_id).execute()
+        response_membro = supabase.table("membros").select("id", "unidade_id").eq("id", membro_id).execute()
 
         if response_membro.data:
             membro_data = response_membro.data[0]
@@ -91,7 +89,7 @@ async def get_administradores_intervalo(request: Request, inicio: int = Query(No
         elif not response_membro.data:
             raise HTTPException(status_code=404, detail="Erro ao tentar recuperar o perfil de membro do administrador")
 
-        response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).execute()
+        response_unidade = supabase.table("unidades").select("id", "nome").eq("id", unidade_id).execute()
 
         if response_unidade.data:
             unidade_data = response_unidade.data[0]
@@ -182,9 +180,9 @@ async def delete_administrador(request: Request, id: int, payload: dict = Depend
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
 
     if tipo_administrador == "ADMGeral":
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).execute()
+        response_administrador = supabase.table("administradores").select("id").eq("id", id).execute()
     else:
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
+        response_administrador = supabase.table("administradores").select("id", "acesso_unidade_id").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
 
     if not response_administrador.data:
         raise HTTPException(status_code=404, detail="Administrador não encontrado")
@@ -207,9 +205,9 @@ async def update_administrador(request: Request, id: int, dados: UpdateAdministr
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
 
     if tipo_administrador == "ADMGeral":
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).execute()
+        response_administrador = supabase.table("administradores").select("id").eq("id", id).execute()
     else:
-        response_administrador = supabase.table("administradores").select("*").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
+        response_administrador = supabase.table("administradores").select("id", "acesso_unidade_id").eq("id", id).filter("acesso_unidade_id", "ov", acesso_unidades_id).execute()
 
 
     if not response_administrador.data:

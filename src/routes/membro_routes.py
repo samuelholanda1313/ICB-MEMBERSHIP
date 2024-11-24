@@ -20,11 +20,11 @@ async def get_membro_id(request: Request, id: int, payload: dict = Depends(check
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
 
     if tipo_administrador == "ADMUnidade":
-        response_membro = supabase.table("membros").select("*").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
+        response_membro = supabase.table("membros").select("id", "nome", "unidade_id", "email", "sexo", "posicao", "telefone").eq("id", id).in_("unidade_id", acesso_unidades_id).execute()
     else:
-        response_membro = supabase.table("membros").select("*").eq("id", id).execute()
+        response_membro = supabase.table("membros").select("id", "nome", "unidade_id", "email", "sexo", "posicao", "telefone").eq("id", id).execute()
     dados_membro = response_membro.data[0]
-    response_unidade = supabase.table("unidades").select("*").eq("id", dados_membro['unidade_id']).execute()
+    response_unidade = supabase.table("unidades").select("id", "nome").eq("id", dados_membro['unidade_id']).execute()
     dados_membro['unidade'] = response_unidade.data[0]
     dados_membro.pop('unidade_id')
 
@@ -42,13 +42,7 @@ async def get_membros_intervalo(request: Request, inicio: int = Query(None, desc
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("*")
-
-    if inicio is not None:
-        query = query.gte("id", inicio)
-
-    if fim is not None:
-        query = query.lte("id", fim)
+    query = supabase.table("membros").select("id", "email", "nome", "unidade_id").order("id").range(inicio, fim)
 
     if tipo_administrador == "ADMUnidade":
         query = query.in_("unidade_id", acesso_unidades_id)
@@ -60,9 +54,9 @@ async def get_membros_intervalo(request: Request, inicio: int = Query(None, desc
     for dados_membro in response_membro.data:
         unidade_id = dados_membro['unidade_id']
         if tipo_administrador == "ADMUnidade":
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
+            response_unidade = supabase.table("unidades").select("id", "nome").eq("id", unidade_id).in_("id", acesso_unidades_id).execute()
         else:
-            response_unidade = supabase.table("unidades").select("*").eq("id", unidade_id).execute()
+            response_unidade = supabase.table("unidades").select("id", "nome").eq("id", unidade_id).execute()
         dados_membro['unidade'] = response_unidade.data[0]
         dados_membro.pop('unidade_id')
         dados_membros.append(dados_membro)
@@ -102,13 +96,7 @@ async def get_membros_filtro(request: Request, nome: str = Query(None), unidade:
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("id", "nome", "unidade_id")
-
-    if inicio is not None:
-        query = query.gte("id", inicio)
-
-    if fim is not None:
-        query = query.lte("id", fim)
+    query = supabase.table("membros").select("id", "nome", "unidade_id").order("id").range(inicio, fim)
 
     if nome is not None:
         query = query.ilike("nome", nome)
@@ -161,12 +149,18 @@ async def delete_membro(request: Request, id: int, payload: dict = Depends(check
     if not response_membro.data:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
 
+    response_administradores = supabase.table("administradores").select("id", "membro_id").eq("membro_id", id).execute()
+    if response_administradores.data:
+        delete_admin_response = supabase.table("administradores").delete().eq("membro_id", id).execute()
+        if not delete_admin_response.data:
+            raise HTTPException(status_code=500, detail="Erro ao deletar o administrador associado ao membro!")
+
     delete_response = supabase.table("membros").delete().eq("id", id).execute()
 
     if not delete_response.data:
         raise HTTPException(status_code=500, detail="Erro ao deletar o membro")
 
-    return {"detail": f"Unidade {response_membro.data[0]['id']} deletado com sucesso"}
+    return {"detail": f"Membro com id={response_membro.data[0]['id']} deletado com sucesso"}
 
 # Método PUT para atualizar um membro
 @router.put("/membro/{id}")
@@ -187,6 +181,7 @@ async def update_membro(request: Request, id: int, dados: UpdateMembro = Body(..
 
     dados = dados.dict(exclude_unset=True)
     dados['modified_at'] = datetime.now().isoformat()
+    dados['data_nascimento'] = dados['data_nascimento'].isoformat()
     update_response = supabase.table("membros").update(dados).eq("id", id).execute()
 
     if not update_response.data:
@@ -201,6 +196,7 @@ async def create_membro(request: Request, dados: CreateMembro = Body(...), paylo
 
     supabase: Client = get_supabase_client()
     dados = dados.dict()
+    dados['data_nascimento'] = dados['data_nascimento'].isoformat()
     dados['created_at'] = datetime.now().isoformat()
     dados['modified_at'] = datetime.now().isoformat()
     response_membro = supabase.table("membros").select("email").eq("email", dados["email"]).execute()

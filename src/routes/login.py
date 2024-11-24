@@ -44,12 +44,12 @@ async def login(login_request: LoginRequest, request: Request):
     senha = login_request.senha
 
     supabase: Client = get_supabase_client()
-    response_membro = supabase.table("membros").select("id").eq("email", email).execute()
+    response_membro = supabase.table("membros").select("id", "email").eq("email", email).execute()
 
     if not response_membro.data:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
 
-    response_administrador = supabase.table("administradores").select("*").eq("membro_id", response_membro.data[0]['id']).execute()
+    response_administrador = supabase.table("administradores").select("id", "senha", "tipo", "acesso_unidade_id").eq("membro_id", response_membro.data[0]['id']).execute()
 
     if not response_administrador.data:
         raise HTTPException(status_code=404, detail="Administrador não encontrado")

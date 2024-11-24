@@ -19,9 +19,9 @@ async def get_unidade_id(request: Request, id: int, payload: dict = Depends(chec
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
     if tipo_administrador == "ADMUnidade":
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).in_("id", acesso_unidades_id).execute()
+        response_unidade = supabase.table("unidades").select("id", "nome", "cidade", "cep", "bairro", "estado").eq("id", id).in_("id", acesso_unidades_id).execute()
     else:
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).execute()
+        response_unidade = supabase.table("unidades").select("id", "nome", "cidade", "cep", "bairro", "estado").eq("id", id).execute()
     dados_unidade = response_unidade.data[0]
 
     if not response_unidade.data:
@@ -79,13 +79,7 @@ async def get_unidades_intervalo(request: Request, inicio: int = Query(None, des
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("unidades").select("*")
-
-    if inicio is not None:
-        query = query.gte("id", inicio)
-
-    if fim is not None:
-        query = query.lte("id", fim)
+    query = supabase.table("unidades").select("id", "nome", "cidade").order("id").range(inicio, fim)
 
     if tipo_administrador == "ADMUnidade":
         query = query.in_("id", acesso_unidades_id)
@@ -121,13 +115,7 @@ async def get_unidades_filtro(request: Request, nome: str = Query(None), cidade:
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("unidades").select("*")
-
-    if inicio is not None:
-        query = query.gte("id", inicio)
-
-    if fim is not None:
-        query = query.lte("id", fim)
+    query = supabase.table("unidades").select("id", "nome", "cidade", "estado").order("id").range(inicio, fim)
 
     if nome is not None:
         query = query.ilike("nome", nome)
@@ -157,9 +145,9 @@ async def delete_unidade(request: Request, id: int, payload: dict = Depends(chec
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
     if tipo_administrador == "ADMUnidade":
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).in_("id", acesso_unidades_id).execute()
+        response_unidade = supabase.table("unidades").select("id").eq("id", id).in_("id", acesso_unidades_id).execute()
     else:
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).execute()
+        response_unidade = supabase.table("unidades").select("id").eq("id", id).execute()
 
     if not response_unidade.data:
         raise HTTPException(status_code=404, detail="Unidade não encontrada")
@@ -181,9 +169,9 @@ async def update_unidade(request: Request, id: int, dados: UpdateUnidade = Body(
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
     if tipo_administrador == "ADMUnidade":
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).in_("id", acesso_unidades_id).execute()
+        response_unidade = supabase.table("unidades").select("id").eq("id", id).in_("id", acesso_unidades_id).execute()
     else:
-        response_unidade = supabase.table("unidades").select("*").eq("id", id).execute()
+        response_unidade = supabase.table("unidades").select("id").eq("id", id).execute()
 
     if not response_unidade.data:
         raise HTTPException(status_code=404, detail="Unidade não encontrada")
@@ -209,7 +197,7 @@ async def create_unidade(request: Request, dados: CreateUnidade = Body(...), pay
     dados = dados.dict()
     dados['created_at'] = datetime.now().isoformat()
     dados['modified_at'] = datetime.now().isoformat()
-    response_unidade = supabase.table("unidades").select("*").eq("nome", dados["nome"]).execute()
+    response_unidade = supabase.table("unidades").select("id").eq("nome", dados["nome"]).execute()
     if response_unidade.data:
         raise HTTPException(status_code=409, detail="Já existe uma unidade com este nome")
 
