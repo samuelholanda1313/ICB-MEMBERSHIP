@@ -17,7 +17,7 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
 
     tipo_administrador = payload.get("tipo")
     supabase: Client = get_supabase_client()
-    response_administrador = supabase.table("administradores").select("id", "membro_id", "unidade_id", "acesso_unidade_id").eq("id", id).execute()
+    response_administrador = supabase.table("administradores").select("id", "membro_id", "unidade_id", "acesso_unidade_id", "tipo").eq("id", id).execute()
 
     if response_administrador.data:
         raise HTTPException(status_code=404, detail="Erro ao tentar recuperar o perfil do administrador")
@@ -56,6 +56,27 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
         return {"data": dados_administrador}
     raise HTTPException(status_code=404, detail="Erro ao tentar buscar o perfil do administrador")
 
+# Método GET que retorna todos os administradores
+@router.get("/administradores")
+@limiter.limit("100/minute")
+async def get_administradores(request: Request, payload: dict = Depends(check_token)):
+
+    supabase: Client = get_supabase_client()
+    tipo_administrador = payload.get("tipo")
+    acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
+    acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
+    query = supabase.table("administradores").select("id")
+
+    if tipo_administrador == "ADMUnidade":
+        query = query.in_("unidade_id", acesso_unidades_id)
+
+    response_administrador = query.execute()
+
+    if not response_administrador.data:
+        raise HTTPException(status_code=404, detail="Erro ao tentar buscar o administrador")
+
+    return {"data": response_administrador}
+
 # Método GET para me retornar administradores por um intervalo de ID
 @router.get("/administradores/intervalo")
 @limiter.limit("100/minute")
@@ -65,7 +86,7 @@ async def get_administradores_intervalo(request: Request, inicio: int = Query(No
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("administradores").select("id", "unidade_id", "membro_id", "acesso_unidade_id").order("id").range(inicio, fim)
+    query = supabase.table("administradores").select("id", "unidade_id", "membro_id", "acesso_unidade_id", "tipo").order("id").range(inicio, fim)
 
     if tipo_administrador == "ADMUnidade":
         query = query.filter("acesso_unidade_id", "ov", acesso_unidades_id)
@@ -80,7 +101,7 @@ async def get_administradores_intervalo(request: Request, inicio: int = Query(No
     for dados_administrador in response_administrador.data:
         membro_id = dados_administrador['membro_id']
         unidade_id = dados_administrador['unidade_id']
-        response_membro = supabase.table("membros").select("id", "unidade_id").eq("id", membro_id).execute()
+        response_membro = supabase.table("membros").select("id", "unidade_id", "nome").eq("id", membro_id).execute()
 
         if response_membro.data:
             membro_data = response_membro.data[0]
