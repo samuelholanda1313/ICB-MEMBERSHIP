@@ -97,7 +97,7 @@ async def get_unidades_intervalo(request: Request, inicio: int = Query(None, des
 async def get_unidades(request: Request):
 
     supabase: Client = get_supabase_client()
-    query = supabase.table("unidades").select("nome")
+    query = supabase.table("unidades").select("id", "nome")
 
     response_unidade = query.execute()
 

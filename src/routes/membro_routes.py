@@ -75,7 +75,7 @@ async def get_membros(request: Request, payload: dict = Depends(check_token)):
     tipo_administrador = payload.get("tipo")
     acesso_unidades_id = json.dumps(payload.get("acesso_unidade_id"))
     acesso_unidades_id = "{" + acesso_unidades_id[1:-1] + "}"
-    query = supabase.table("membros").select("nome")
+    query = supabase.table("membros").select("id", "nome", "unidade_id")
 
     if tipo_administrador == "ADMUnidade":
         query = query.in_("unidade_id", acesso_unidades_id)
