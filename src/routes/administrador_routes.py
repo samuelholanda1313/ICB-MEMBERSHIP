@@ -19,7 +19,7 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
     supabase: Client = get_supabase_client()
     response_administrador = supabase.table("administradores").select("id", "membro_id", "unidade_id", "acesso_unidade_id", "tipo").eq("id", id).execute()
 
-    if response_administrador.data:
+    if not response_administrador.data:
         raise HTTPException(status_code=404, detail="Erro ao tentar recuperar o perfil do administrador")
 
     dados_administrador = response_administrador.data[0]
@@ -35,6 +35,7 @@ async def get_administrador_id(request: Request, id: int, payload: dict = Depend
 
         if response_membro.data:
             dados_membro = response_membro.data[0]
+            dados_membro.pop('unidade_id', None)
             dados_administrador['membro'] = dados_membro
 
         elif not response_membro.data:

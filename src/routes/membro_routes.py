@@ -211,11 +211,12 @@ async def create_membro(request: Request, dados: CreateMembro = Body(...), paylo
     return {"detail": create_response.data[0]}
 
 @router.post("/membro_formulario")
-@limiter.limit("5/minute")
+@limiter.limit("3/minute")
 async def create_membro_form(request: Request, dados: CreateMembro = Body(...)):
 
     supabase: Client = get_supabase_client()
     dados = dados.dict()
+    dados['data_nascimento'] = dados['data_nascimento'].isoformat()
     dados['created_at'] = datetime.now().isoformat()
     dados['modified_at'] = datetime.now().isoformat()
     response_membro = supabase.table("membros").select("email").eq("email", dados["email"]).execute()
