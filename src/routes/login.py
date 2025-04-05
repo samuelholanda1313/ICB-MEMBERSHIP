@@ -42,6 +42,35 @@ class LoginRequest(BaseModel):
 async def login(login_request: LoginRequest, request: Request):
     email = login_request.email
     senha = login_request.senha
+    supabase: Client = get_supabase_client()
+
+    response = supabase.rpc(
+        "get_admin_login_data",
+        {"admin_email": email}
+    ).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Administrador não encontrado")
+
+    admin_data = response.data[0]
+
+    hash_armazenado = admin_data["senha"]
+
+    if check_senha(senha, hash_armazenado):
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": email, "tipo": admin_data["tipo"], "acesso_unidade_id": admin_data["acesso_unidade_id"]}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=400, detail="Senha incorreta")
+
+"""
+@router.post("/login")
+@limiter.limit("30/minute")
+async def login(login_request: LoginRequest, request: Request):
+    email = login_request.email
+    senha = login_request.senha
 
     supabase: Client = get_supabase_client()
     response_membro = supabase.table("membros").select("id", "email").eq("email", email).execute()
@@ -64,3 +93,4 @@ async def login(login_request: LoginRequest, request: Request):
         return {"access_token": access_token, "token_type": "bearer"}
     else:
         raise HTTPException(status_code=400, detail="Senha incorreta")
+"""
