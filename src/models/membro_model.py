@@ -9,6 +9,10 @@ class UpdateMembro(BaseModel):
     sexo: Optional[str] = None
     unidade_id: Optional[int] = None
     posicao: Optional[str] = None
+    cep: Optional[str] = None
+    estado: Optional[str] = None
+    cidade: Optional[str] = None
+    numero: Optional[str] = None
     endereco: Optional[str] = None
     bairro: Optional[str] = None
     estado_civil: Optional[str] = None
@@ -24,6 +28,10 @@ class CreateMembro(BaseModel):
     sexo: str
     unidade_id: str
     posicao: str
+    cep: str
+    estado: str
+    cidade: str
+    numero: str
     endereco: str
     bairro: str
     estado_civil: str
